@@ -7,6 +7,7 @@ import Shop from './screens/Shop';
 import Settings from './screens/Settings';
 import Navbar from './components/Navbar';
 import { ASSETS as INITIAL_ASSETS } from './constants';
+import './index.css';
 
 const App: React.FC = () => {
   const [activeScreen, setActiveScreen] = useState<ScreenType>(ScreenType.HOME);
