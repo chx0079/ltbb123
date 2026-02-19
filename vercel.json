@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/sina-api/:match*",
-      "destination": "https://hq.sinajs.cn/:match*"
+      "destination": "/api/stock?path=:match*"
     }
   ]
 }
