@@ -31,7 +31,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ user, assets, onAdd, onDelete }) 
         // 如果输入不规范，不做处理，交给 API 报错或失败
     }
     
-    const baseUrl = import.meta.env.DEV ? '/sina-api' : 'https://hq.sinajs.cn';
+    const baseUrl = '/sina-api';
     const url = `${baseUrl}/list=${finalCode}`;
 
     try {
