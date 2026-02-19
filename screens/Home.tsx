@@ -76,17 +76,18 @@ const Home: React.FC<HomeProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Daily Profit Display */}
-      <div className="flex-1 flex flex-col items-center justify-start mt-4">
-        <span className="text-[11px] text-profit-green/70 uppercase tracking-[0.3em] mb-2 font-bold">今日收益</span>
-        <h1 className="text-7xl font-bold text-profit-green drop-shadow-[0_0_20px_rgba(163,230,53,0.3)]">
-          {user.dailyProfit >= 0 ? '+' : '-'}{'¥'}{Math.abs(user.dailyProfit).toFixed(2)}
-        </h1>
-      </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-8 pb-24">
+        {/* Daily Profit Display */}
+        <div className="flex flex-col items-center justify-center">
+          <span className="text-[11px] text-profit-green/70 uppercase tracking-[0.3em] mb-2 font-bold">今日收益</span>
+          <h1 className="text-7xl font-bold text-profit-green drop-shadow-[0_0_20px_rgba(163,230,53,0.3)]">
+            {user.dailyProfit >= 0 ? '+' : '-'}{'¥'}{Math.abs(user.dailyProfit).toFixed(2)}
+          </h1>
+        </div>
 
-      {/* Office Scene Visualization */}
-      <div className="absolute inset-x-0 bottom-24 flex items-end justify-center px-4 pointer-events-none z-0">
-        <div className="w-full max-w-[320px] pointer-events-auto pb-4">
+        {/* Office Scene Visualization */}
+        <div className="w-full max-w-[320px] pointer-events-auto">
           <OfficeScene 
             employeeCount={Math.min(6, Math.max(3, (user.vipLevel || 1) * 3))} 
             dailyProfit={user.dailyProfit} 

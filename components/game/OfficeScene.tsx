@@ -72,7 +72,7 @@ export const OfficeScene: React.FC<OfficeSceneProps> = ({ employeeCount, dailyPr
           return (
             <div key={index} className="relative flex flex-col items-center justify-end h-20 w-16">
               {/* Employee & Desk */}
-              <div className="relative transform scale-90 hover:scale-100 transition-transform duration-200 origin-bottom">
+              <div className="relative transform scale-90 origin-bottom">
                 {/* LilGuy sits behind the desk */}
                 <LilGuy 
                   seed={employeeSeed} 
