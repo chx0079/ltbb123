@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { UserState } from '../types';
 
+import { OfficeScene } from '../components/game/OfficeScene';
+
 interface HomeProps {
   user: UserState;
 }
@@ -51,7 +53,7 @@ const Home: React.FC<HomeProps> = ({ user }) => {
       )}
 
       {/* Top Header Card */}
-      <div className="bg-[#1a1a1a]/80 backdrop-blur-md rounded-2xl p-4 flex justify-between items-start shadow-xl border border-white/5 mb-8 mt-6">
+      <div className="bg-[#1a1a1a]/80 backdrop-blur-md rounded-2xl p-4 flex justify-between items-start shadow-xl border border-white/5 mb-8 mt-6 relative z-50">
         <div className="flex flex-col">
           <span className="text-[10px] text-gray-500 font-bold tracking-wider mb-1 flex items-center gap-1.5">
             当前北京时间
@@ -82,48 +84,13 @@ const Home: React.FC<HomeProps> = ({ user }) => {
         </h1>
       </div>
 
-      {/* Idle Machine Visualization */}
-      <div className="absolute inset-x-0 bottom-8 h-[40%] flex items-end justify-center px-4 pointer-events-none">
-        <div className="relative w-full max-w-md h-full flex items-end justify-between px-2 pb-8">
-          {/* Left Machine */}
-          <div className="relative flex flex-col items-center mb-4 opacity-60">
-            <div className="w-20 h-14 bg-[#2a3441] rounded-sm relative shadow-lg">
-              <div className="absolute -top-10 left-3 w-14 h-10 border border-primary/40 rounded-sm bg-primary/5 flex items-center justify-center overflow-hidden">
-                <div className="w-full h-[1px] bg-primary/30 rotate-12 animate-pulse"></div>
-              </div>
-              <div className="absolute -top-10 left-5 w-10 h-10 bg-slate-400/80 rounded-t-lg" style={{ clipPath: 'polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%)' }}></div>
-            </div>
-          </div>
-
-          {/* Center Main Unit */}
-          <div className="relative z-10 flex flex-col items-center mx-2 transform mb-2 animate-float">
-            <div className="w-32 h-44 bg-gradient-to-b from-[#2a3441] to-[#1a222c] rounded-2xl border border-white/10 relative shadow-2xl flex flex-col items-center justify-start p-3">
-              <div className="w-full h-14 bg-primary/10 border border-primary/30 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-sm text-primary/80 font-mono font-bold animate-pulse">
-                  {user.isSimulationMode ? '模拟运算中' : '实时监听中'}
-                </span>
-              </div>
-              <div className="w-24 h-2 bg-black rounded-full mb-8 shadow-[0_0_15px_rgba(74,222,128,0.3)]"></div>
-              <div className="w-full flex flex-col gap-2 mt-auto pb-1">
-                <div className="flex items-center justify-between px-2">
-                  <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_#22c55e] ${user.isSimulationMode ? 'bg-gold' : 'bg-green-500'}`}></div>
-                  <div className="w-16 h-2 bg-[#0f172a] rounded-full overflow-hidden border border-white/5">
-                    <div className={`h-full w-[65%] transition-all duration-1000 ${user.isSimulationMode ? 'bg-gold' : 'bg-primary'}`}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Machine */}
-          <div className="relative flex flex-col items-center mb-4 opacity-60">
-            <div className="w-20 h-14 bg-[#2a3441] rounded-sm relative shadow-lg">
-              <div className="absolute -top-10 left-3 w-14 h-10 border border-primary/40 rounded-sm bg-primary/5 flex items-center justify-center">
-                <span className={`material-icons-round text-xs animate-spin ${user.isSimulationMode ? 'text-gold/40' : 'text-primary/30'}`} style={{ animationDuration: '3s' }}>pie_chart</span>
-              </div>
-              <div className="absolute -top-10 left-5 w-10 h-10 bg-slate-400/80 rounded-t-lg" style={{ clipPath: 'polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%)' }}></div>
-            </div>
-          </div>
+      {/* Office Scene Visualization */}
+      <div className="absolute inset-x-0 bottom-24 flex items-end justify-center px-4 pointer-events-none z-0">
+        <div className="w-full max-w-[320px] pointer-events-auto pb-4">
+          <OfficeScene 
+            employeeCount={Math.min(6, Math.max(3, (user.vipLevel || 1) * 3))} 
+            dailyProfit={user.dailyProfit} 
+          />
         </div>
       </div>
     </div>

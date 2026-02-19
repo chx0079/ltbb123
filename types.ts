@@ -36,4 +36,5 @@ export interface UserState {
   vipLevel: number;
   userId: string;
   isSimulationMode: boolean;
+  lastLoginDate?: string;
 }

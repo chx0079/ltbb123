@@ -41,7 +41,7 @@ const Shop: React.FC<ShopProps> = ({ user }) => {
       </div>
 
       {/* Shop Grid */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 grid grid-cols-2 gap-3 no-scrollbar pb-10">
+      <div className="flex-1 overflow-y-auto px-4 py-6 grid grid-cols-2 gap-3 no-scrollbar pb-32">
         {SHOP_ITEMS.filter(item => item.category === activeTab).map((item) => (
           <div 
             key={item.id} 

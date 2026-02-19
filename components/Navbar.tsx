@@ -16,7 +16,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeScreen, setActiveScreen }) => {
   ];
 
   return (
-    <nav className="relative z-50 w-full bg-[#0d1218]/90 backdrop-blur-2xl border-t border-white/5 pb-8 pt-3">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 w-full bg-[#0d1218]/90 backdrop-blur-2xl border-t border-white/5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3">
       <div className="flex justify-around items-center px-4 max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = activeScreen === item.type;

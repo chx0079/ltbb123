@@ -370,8 +370,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ user, assets, onAdd, onDelete }) 
           )}
         </div>
 
-        {/* Asset Type Info */}
-        <div className="px-1 text-center py-4">
+        <div className="px-1 text-center py-4 pb-32">
           <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
             <span className="w-8 h-[1px] bg-gray-800"></span>
             当前支持 A股 (sh/sz) 代码录入

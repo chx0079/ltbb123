@@ -29,6 +29,10 @@
                     animation: {
                         'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'float': 'float 3s ease-in-out infinite',
+                        'bounce-slight': 'bounce-slight 2s infinite',
+                        'type-left': 'type-left 0.5s infinite alternate',
+                        'type-right': 'type-right 0.5s infinite alternate-reverse',
+                        'float-up': 'float-up 1s ease-out forwards',
                     },
                     keyframes: {
                         'pulse-glow': {
@@ -38,6 +42,22 @@
                         'float': {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-10px)' },
+                        },
+                        'bounce-slight': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-2px)' },
+                        },
+                        'type-left': {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(-10deg) translateY(1px)' },
+                        },
+                        'type-right': {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(10deg) translateY(1px)' },
+                        },
+                        'float-up': {
+                            '0%': { transform: 'translate(-50%, 0)', opacity: 1 },
+                            '100%': { transform: 'translate(-50%, -20px)', opacity: 0 },
                         }
                     }
                 }
