@@ -45,12 +45,17 @@ const App: React.FC = () => {
     
     const codes = assets.map(a => formatSinaCode(a.code)).join(',');
     // 使用相对路径，在本地由 Vite 代理处理，在生产环境由 Vercel Rewrites 处理
-    const url = `/sina-api/list=${codes}`;
+      const url = `/sina-api/list=${codes}`;
 
-    try {
-      const response = await fetch(url);
-      const buffer = await response.arrayBuffer();
-      // 处理新浪 API 的 GBK 编码
+      try {
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const buffer = await response.arrayBuffer();
+        // 处理新浪 API 的 GBK 编码
       const decoder = new TextDecoder('gbk');
       const text = decoder.decode(buffer);
 
