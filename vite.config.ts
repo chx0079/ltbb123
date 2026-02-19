@@ -8,6 +8,16 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/sina-api': {
+            target: 'https://hq.sinajs.cn',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/sina-api/, ''),
+            headers: {
+              Referer: 'https://finance.sina.com.cn/'
+            }
+          }
+        }
       },
       plugins: [react()],
       define: {

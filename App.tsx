@@ -40,24 +40,26 @@ const App: React.FC = () => {
   };
 
   // 真实市场数据获取逻辑
-  const fetchRealMarketData = () => {
+  const fetchRealMarketData = async () => {
     if (assets.length === 0) return;
     
     const codes = assets.map(a => formatSinaCode(a.code)).join(',');
-    // 使用 JSONP 方式获取数据，解决 Vercel 等静态部署环境下的 CORS 问题
-    // 新浪财经 API 返回的是 var hq_str_shxxxx = "..."; 的 JS 代码
-    const script = document.createElement('script');
-    script.src = `https://hq.sinajs.cn/list=${codes}`;
-    script.charset = 'gbk';
+    // 使用相对路径，在本地由 Vite 代理处理，在生产环境由 Vercel Rewrites 处理
+    const url = `/sina-api/list=${codes}`;
 
-    script.onload = () => {
-      const updatedAssets = assets.map((asset) => {
-        const sinaCode = formatSinaCode(asset.code);
-        const varName = `hq_str_${sinaCode}`;
-        const dataStr = (window as any)[varName];
+    try {
+      const response = await fetch(url);
+      const buffer = await response.arrayBuffer();
+      // 处理新浪 API 的 GBK 编码
+      const decoder = new TextDecoder('gbk');
+      const text = decoder.decode(buffer);
 
-        if (!dataStr) return asset;
+      const lines = text.split('\n');
+      const updatedAssets = assets.map((asset, index) => {
+        const line = lines[index];
+        if (!line || !line.includes('"')) return asset;
 
+        const dataStr = line.split('"')[1];
         const parts = dataStr.split(',');
         if (parts.length < 4) return asset;
 
@@ -81,17 +83,10 @@ const App: React.FC = () => {
 
       setAssets(updatedAssets);
       setIsDataLoaded(true);
-      // 清理 script 标签
-      document.body.removeChild(script);
-    };
-
-    script.onerror = () => {
-      console.error('获取实时行情失败');
-      setIsDataLoaded(true); // 即使失败也标记加载完成
-      document.body.removeChild(script);
-    };
-
-    document.body.appendChild(script);
+    } catch (error) {
+      console.error('获取实时行情失败:', error);
+      setIsDataLoaded(true); // 即使失败也标记加载完成，避免卡死
+    }
   };
 
   // 持久化用户状态

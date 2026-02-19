@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/sina-api/:match*",
+      "destination": "https://hq.sinajs.cn/:match*"
+    }
+  ]
+}
