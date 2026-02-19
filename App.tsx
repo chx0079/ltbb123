@@ -1,0 +1,187 @@
+
+import React, { useState, useEffect } from 'react';
+import { ScreenType, UserState, Asset } from './types';
+import Home from './screens/Home';
+import Portfolio from './screens/Portfolio';
+import Shop from './screens/Shop';
+import Settings from './screens/Settings';
+import Navbar from './components/Navbar';
+import { ASSETS as INITIAL_ASSETS } from './constants';
+
+const App: React.FC = () => {
+  const [activeScreen, setActiveScreen] = useState<ScreenType>(ScreenType.HOME);
+  const [user, setUser] = useState<UserState>(() => {
+    const saved = localStorage.getItem('finance_tycoon_user_v3');
+    return saved ? JSON.parse(saved) : {
+      companyFunds: 0,
+      incentivePoints: 0,
+      dailyProfit: 0,
+      vipLevel: 4,
+      userId: '88294105',
+      isSimulationMode: false
+    };
+  });
+
+  const [assets, setAssets] = useState<Asset[]>(() => {
+    const saved = localStorage.getItem('finance_tycoon_assets_v3');
+    return saved ? JSON.parse(saved) : INITIAL_ASSETS;
+  });
+
+  // 格式化股票代码以符合新浪 API (6位数字转 sh/sz 前缀)
+  const formatSinaCode = (code: string) => {
+    const c = code.replace(/[^0-9]/g, '');
+    if (c.length !== 6) return code.toLowerCase(); // 如果已经是带前缀的或非6位则不处理
+    if (c.startsWith('6') || c.startsWith('9') || c.startsWith('5')) return `sh${c}`;
+    return `sz${c}`;
+  };
+
+  // 真实市场数据获取逻辑
+  const fetchRealMarketData = async () => {
+    if (assets.length === 0) return;
+    
+    const codes = assets.map(a => formatSinaCode(a.code)).join(',');
+    // 使用新浪财经 API (注意：部分浏览器环境可能存在 CORS 限制，通常在移动端或代理环境下可正常工作)
+    const baseUrl = import.meta.env.DEV ? '/sina-api' : 'https://hq.sinajs.cn';
+    const url = `${baseUrl}/list=${codes}`;
+
+    try {
+      const response = await fetch(url);
+      const buffer = await response.arrayBuffer();
+      // 处理新浪 API 的 GBK 编码
+      const decoder = new TextDecoder('gbk');
+      const text = decoder.decode(buffer);
+
+      const lines = text.split('\n');
+      const updatedAssets = assets.map((asset, index) => {
+        const line = lines[index];
+        if (!line || !line.includes('"')) return asset;
+
+        const dataStr = line.split('"')[1];
+        const parts = dataStr.split(',');
+        if (parts.length < 4) return asset;
+
+        const name = parts[0];
+        const lastClose = parseFloat(parts[2]);
+        const currentPrice = parseFloat(parts[3]);
+        
+        if (isNaN(currentPrice) || currentPrice === 0) return asset;
+
+        const changeAmount = currentPrice - lastClose;
+        const changePercent = Number(((changeAmount / lastClose) * 100).toFixed(2));
+
+        return {
+          ...asset,
+          name: name || asset.name,
+          currentPrice: currentPrice,
+          change: changePercent,
+          value: asset.quantity * currentPrice
+        };
+      });
+
+      setAssets(updatedAssets);
+    } catch (error) {
+      console.error('获取实时行情失败:', error);
+    }
+  };
+
+  // 持久化用户状态
+  useEffect(() => {
+    localStorage.setItem('finance_tycoon_user_v3', JSON.stringify(user));
+  }, [user]);
+
+  // 持久化资产并更新公司总额和利润
+  useEffect(() => {
+    localStorage.setItem('finance_tycoon_assets_v3', JSON.stringify(assets));
+    
+    const totalValue = assets.reduce((sum, asset) => sum + (asset.quantity * asset.currentPrice), 0);
+    const totalProfit = assets.reduce((sum, asset) => {
+      const lastClose = asset.currentPrice / (1 + asset.change / 100);
+      const dailyGain = (asset.currentPrice - lastClose) * asset.quantity;
+      return sum + dailyGain;
+    }, 0);
+    
+    setUser(prev => ({
+      ...prev,
+      companyFunds: totalValue,
+      dailyProfit: totalProfit
+    }));
+  }, [assets]);
+
+  // 行情更新循环
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user.isSimulationMode) {
+        // 模拟模式：随机波动
+        setAssets(currentAssets => 
+          currentAssets.map(asset => {
+            const newChange = Number((asset.change + (Math.random() * 0.1 - 0.05)).toFixed(2));
+            const priceFactor = 1 + (newChange / 10000); 
+            return {
+              ...asset,
+              change: newChange,
+              currentPrice: Number((asset.currentPrice * priceFactor).toFixed(2))
+            };
+          })
+        );
+      } else {
+        // 真实市场模式：调用新浪 API
+        fetchRealMarketData();
+      }
+    }, 5000); // 每5秒更新一次
+    
+    return () => clearInterval(interval);
+  }, [user.isSimulationMode, assets.length]);
+
+  const addAsset = (newAssetData: Omit<Asset, 'id' | 'change' | 'icon' | 'type' | 'value'>) => {
+    const asset: Asset = {
+      ...newAssetData,
+      id: Date.now().toString(),
+      type: 'stock',
+      change: 0,
+      icon: 'analytics',
+      value: newAssetData.quantity * newAssetData.currentPrice
+    };
+    setAssets(prev => [asset, ...prev]);
+  };
+
+  const deleteAsset = (id: string) => {
+    setAssets(prev => prev.filter(a => a.id !== id));
+  };
+
+  const toggleSimulationMode = (enabled: boolean) => {
+    setUser(prev => ({ ...prev, isSimulationMode: enabled }));
+  };
+
+  const renderScreen = () => {
+    switch (activeScreen) {
+      case ScreenType.HOME:
+        return <Home user={user} />;
+      case ScreenType.PORTFOLIO:
+        return <Portfolio user={user} assets={assets} onAdd={addAsset} onDelete={deleteAsset} />;
+      case ScreenType.SHOP:
+        return <Shop user={user} />;
+      case ScreenType.SETTINGS:
+        return <Settings user={user} onToggleSimulation={toggleSimulationMode} />;
+      default:
+        return <Home user={user} />;
+    }
+  };
+
+  return (
+    <div className="h-screen w-screen flex flex-col bg-background-dark text-white overflow-hidden relative">
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 left-0 w-full h-full opacity-20 blur-[1px] mix-blend-overlay" 
+             style={{ backgroundImage: `url('https://images.unsplash.com/photo-1611974717482-48a66504b7ae?auto=format&fit=crop&q=80&w=800')`, backgroundSize: 'cover' }}></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0f171d]/60 via-[#0f171d]/90 to-[#0f171d]"></div>
+      </div>
+
+      <main className="flex-1 overflow-hidden relative z-10">
+        {renderScreen()}
+      </main>
+
+      <Navbar activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+    </div>
+  );
+};
+
+export default App;
