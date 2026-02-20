@@ -15,8 +15,11 @@ export default async function handler(req, res) {
     }
 
     const pathStr = Array.isArray(path) ? path.join('') : path;
-    const cleanPath = pathStr.replace(/^list=/, '').replace(/^list%3D/, '');
+    const decodedPath = decodeURIComponent(pathStr);
+    const cleanPath = decodedPath.replace(/^list=/, '').replace(/^list%3D/, '');
     const codes = cleanPath.split('_').map(c => c.replace(/^(sh|sz)/, ''));
+
+    console.log(`Original path: ${pathStr}, Decoded: ${decodedPath}, Clean: ${cleanPath}`);
 
     const token = 'e38d2c3eaade4254960fd140f6853fc7a43c35a3851b41dfb8621178693bb951';
     const targetUrl = `https://api.itick.org/stock/quotes?region=SH&codes=${codes.join(',')}`;
