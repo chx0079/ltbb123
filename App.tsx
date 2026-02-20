@@ -54,32 +54,24 @@ const App: React.FC = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const text = await response.text();
+        const data = await response.json();
 
-      const lines = text.split(';');
-      const updatedAssets = assets.map((asset, index) => {
-        const line = lines[index];
-        if (!line || !line.includes('=')) return asset;
+      const updatedAssets = assets.map((asset) => {
+        const code = asset.code.replace(/[^0-9]/g, '');
+        const stockData = data.data?.[code];
 
-        const dataStr = line.split('=')[1];
-        if (!dataStr) return asset;
-        const parts = dataStr.replace(/"/g, '').split('~');
-        if (parts.length < 6) return asset;
+        if (!stockData) return asset;
 
-        const name = parts[1];
-        const lastClose = parseFloat(parts[2]);
-        const currentPrice = parseFloat(parts[3]);
+        const currentPrice = parseFloat(stockData.price);
+        const changePercent = parseFloat(stockData.changePercent);
 
         if (isNaN(currentPrice) || currentPrice === 0) return asset;
 
-        const changeAmount = currentPrice - lastClose;
-        const changePercent = Number(((changeAmount / lastClose) * 100).toFixed(2));
-
         return {
           ...asset,
-          name: name || asset.name,
+          name: stockData.name || asset.name,
           currentPrice: currentPrice,
-          change: changePercent,
+          change: isNaN(changePercent) ? 0 : changePercent,
           value: asset.quantity * currentPrice
         };
       });
