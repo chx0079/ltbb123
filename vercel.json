@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/sina-api/:match*",
-      "destination": "/api/stock?path=:match*"
+      "source": "/sina-api/(.*)",
+      "destination": "/api/stock?path=$1"
     }
   ]
 }
