@@ -22,16 +22,11 @@ export default async function handler(req, res) {
     console.log(`Original path: ${pathStr}, Decoded: ${decodedPath}, Clean: ${cleanPath}`);
 
     const token = 'e38d2c3eaade4254960fd140f6853fc7a43c35a3851b41dfb8621178693bb951';
-    const targetUrl = `https://api.itick.org/stock/quotes?region=SH&codes=${codes.join(',')}`;
+    const targetUrl = `https://api.itick.org/stock/quotes?region=SH&codes=${codes.join(',')}&token=${token}`;
 
     console.log(`Fetching from iTick: ${targetUrl}`);
 
-    const response = await fetch(targetUrl, {
-      headers: {
-        'token': token,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(targetUrl);
     const data = await response.json();
 
     res.status(200).json(data);
