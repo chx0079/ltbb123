@@ -10,11 +10,17 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
         proxy: {
           '/sina-api': {
-            target: 'https://hq.sinajs.cn',
+            target: 'http://localhost:3002/api/stock',
             changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/sina-api/, ''),
-            headers: {
-              Referer: 'https://finance.sina.com.cn/'
+            rewrite: (path) => {
+              const match = path.match(/^\/sina-api\/(.*)$/);
+              const query = match ? match[1] : '';
+              return `?path=${query}`;
+            },
+            configure: (proxy) => {
+              proxy.on('error', (err) => {
+                console.error('Proxy error:', err);
+              });
             }
           }
         }
