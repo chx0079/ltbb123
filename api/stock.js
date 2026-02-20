@@ -17,19 +17,20 @@ export default async function handler(req, res) {
     const pathStr = Array.isArray(path) ? path.join('') : path;
     const decodedPath = decodeURIComponent(pathStr);
     const cleanPath = decodedPath.replace(/^list=/, '').replace(/^list%3D/, '');
-    const codes = cleanPath.split('_').map(c => c.replace(/^(sh|sz)/, ''));
+    const targetUrl = `https://qt.gtimg.cn/q=${cleanPath}`;
 
-    console.log(`Original path: ${pathStr}, Decoded: ${decodedPath}, Clean: ${cleanPath}`);
+    console.log(`Fetching from Tencent: ${targetUrl}`);
 
-    const token = 'e38d2c3eaade4254960fd140f6853fc7a43c35a3851b41dfb8621178693bb951';
-    const targetUrl = `https://api.itick.org/stock/quotes?region=SH&codes=${codes.join(',')}&token=${token}`;
+    const response = await fetch(targetUrl, {
+      headers: {
+        'Referer': 'https://finance.sina.com.cn/',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
 
-    console.log(`Fetching from iTick: ${targetUrl}`);
-
-    const response = await fetch(targetUrl);
-    const data = await response.json();
-
-    res.status(200).json(data);
+    const text = await response.text();
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.status(200).send(text);
 
   } catch (error) {
     console.error('Server error:', error);

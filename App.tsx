@@ -54,27 +54,37 @@ const App: React.FC = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
+        const text = await response.text();
 
-      const updatedAssets = assets.map((asset) => {
-        const code = asset.code.replace(/[^0-9]/g, '');
-        const stockData = data.data?.[code];
+        const updatedAssets = assets.map((asset) => {
+          const formattedCode = formatTencentCode(asset.code);
+          const pattern = new RegExp(`${formattedCode}="([^"]+)"`);
+          const match = text.match(pattern);
 
-        if (!stockData) return asset;
+          if (!match) return asset;
 
-        const currentPrice = parseFloat(stockData.p);
-        const changePercent = parseFloat(stockData.chp);
+          const dataParts = match[1].split('~');
+          if (dataParts.length < 32) return asset;
 
-        if (isNaN(currentPrice) || currentPrice === 0) return asset;
+          const name = dataParts[1] || asset.name;
+          const currentPrice = parseFloat(dataParts[3]);
+          const yesterdayClose = parseFloat(dataParts[4]);
+          let changePercent = 0;
 
-        return {
-          ...asset,
-          name: stockData.n || asset.name,
-          currentPrice: currentPrice,
-          change: isNaN(changePercent) ? 0 : changePercent,
-          value: asset.quantity * currentPrice
-        };
-      });
+          if (!isNaN(currentPrice) && !isNaN(yesterdayClose) && yesterdayClose > 0) {
+            changePercent = ((currentPrice - yesterdayClose) / yesterdayClose) * 100;
+          }
+
+          if (isNaN(currentPrice) || currentPrice === 0) return asset;
+
+          return {
+            ...asset,
+            name: name,
+            currentPrice: currentPrice,
+            change: changePercent,
+            value: asset.quantity * currentPrice
+          };
+        });
 
       setAssets(updatedAssets);
       setIsDataLoaded(true);

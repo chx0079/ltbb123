@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FinanceTycoon</string>
+    <string name="title_activity_main">FinanceTycoon</string>
+    <string name="package_name">com.chx0079.financetycoon</string>
+    <string name="custom_url_scheme">com.chx0079.financetycoon</string>
+</resources>
