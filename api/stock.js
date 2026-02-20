@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const pathStr = Array.isArray(path) ? path.join('') : path;
 
     // Construct the target URL
-    const targetUrl = `https://hq.sinajs.cn/${pathStr}`;
+    const targetUrl = `https://qt.gtimg.cn/q=${pathStr}`;
     
     // Log for debugging (Vercel logs)
     console.log(`Proxying request to: ${targetUrl}`);

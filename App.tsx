@@ -32,10 +32,10 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : INITIAL_ASSETS;
   });
 
-  // 格式化股票代码以符合新浪 API (6位数字转 sh/sz 前缀)
-  const formatSinaCode = (code: string) => {
+  // 格式化股票代码以符合腾讯财经 API
+  const formatTencentCode = (code: string) => {
     const c = code.replace(/[^0-9]/g, '');
-    if (c.length !== 6) return code.toLowerCase(); // 如果已经是带前缀的或非6位则不处理
+    if (c.length !== 6) return code.toLowerCase();
     if (c.startsWith('6') || c.startsWith('9') || c.startsWith('5')) return `sh${c}`;
     return `sz${c}`;
   };
@@ -43,10 +43,9 @@ const App: React.FC = () => {
   // 真实市场数据获取逻辑
   const fetchRealMarketData = async () => {
     if (assets.length === 0) return;
-    
-    const codes = assets.map(a => formatSinaCode(a.code)).join(',');
-    // 使用相对路径，在本地由 Vite 代理处理，在生产环境由 Vercel Rewrites 处理
-      const url = `/sina-api/list=${codes}`;
+
+    const codes = assets.map(a => formatTencentCode(a.code)).join('_');
+    const url = `/sina-api/${codes}`;
 
       try {
         const response = await fetch(url);
@@ -55,24 +54,22 @@ const App: React.FC = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const buffer = await response.arrayBuffer();
-        // 处理新浪 API 的 GBK 编码
-      const decoder = new TextDecoder('gbk');
-      const text = decoder.decode(buffer);
+        const text = await response.text();
 
-      const lines = text.split('\n');
+      const lines = text.split(';');
       const updatedAssets = assets.map((asset, index) => {
         const line = lines[index];
-        if (!line || !line.includes('"')) return asset;
+        if (!line || !line.includes('=')) return asset;
 
-        const dataStr = line.split('"')[1];
-        const parts = dataStr.split(',');
-        if (parts.length < 4) return asset;
+        const dataStr = line.split('=')[1];
+        if (!dataStr) return asset;
+        const parts = dataStr.replace(/"/g, '').split('~');
+        if (parts.length < 6) return asset;
 
-        const name = parts[0];
+        const name = parts[1];
         const lastClose = parseFloat(parts[2]);
         const currentPrice = parseFloat(parts[3]);
-        
+
         if (isNaN(currentPrice) || currentPrice === 0) return asset;
 
         const changeAmount = currentPrice - lastClose;
