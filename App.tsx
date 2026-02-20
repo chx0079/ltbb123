@@ -62,14 +62,14 @@ const App: React.FC = () => {
 
         if (!stockData) return asset;
 
-        const currentPrice = parseFloat(stockData.price);
-        const changePercent = parseFloat(stockData.changePercent);
+        const currentPrice = parseFloat(stockData.p);
+        const changePercent = parseFloat(stockData.chp);
 
         if (isNaN(currentPrice) || currentPrice === 0) return asset;
 
         return {
           ...asset,
-          name: stockData.name || asset.name,
+          name: stockData.n || asset.name,
           currentPrice: currentPrice,
           change: isNaN(changePercent) ? 0 : changePercent,
           value: asset.quantity * currentPrice

@@ -15,19 +15,19 @@ export default async function handler(req, res) {
     }
 
     const pathStr = Array.isArray(path) ? path.join('') : path;
-
-    const codes = pathStr.split('_').map(code => {
-      if (code.startsWith('sh')) return 'SHSZ' + code.replace('sh', '');
-      if (code.startsWith('sz')) return 'SHSZ' + code.replace('sz', '');
-      return code;
-    });
+    const codes = pathStr.split('_').map(c => c.replace(/^(sh|sz)/, ''));
 
     const token = 'e38d2c3eaade4254960fd140f6853fc7a43c35a3851b41dfb8621178693bb951';
-    const targetUrl = `https://api.itick.org/stock/quotes?token=${token}&region=CN&code=${codes.join(',')}`;
+    const targetUrl = `https://api.itick.org/stock/quotes?region=SH&codes=${codes.join(',')}`;
 
     console.log(`Fetching from iTick: ${targetUrl}`);
 
-    const response = await fetch(targetUrl);
+    const response = await fetch(targetUrl, {
+      headers: {
+        'token': token,
+        'accept': 'application/json'
+      }
+    });
     const data = await response.json();
 
     res.status(200).json(data);
