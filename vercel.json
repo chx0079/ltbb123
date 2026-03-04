@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/sina-api/(.*)",
-      "destination": "/api/stock?path=$1"
-    }
-  ]
-}
