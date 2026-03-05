@@ -6,6 +6,7 @@ interface AugmentModalProps {
   augment: Augment | null;
   stats: AugmentStats | null;
   onClose: () => void;
+  debugMode?: boolean;
 }
 
 const RARITY_LIGHT = {
@@ -67,6 +68,50 @@ export const AUGMENT_GOLD_VALUES: Record<number, AugmentGoldValue> = {
     value: 20 * 35 + 10 * 26.67 + 5 * 30,
     breakdown: '20 攻击力 × 35 + 10 技能急速 × 26.67 + 5 护甲穿透（固定） × 30',
   },
+  1037: {
+    value: 20 * 50,
+    breakdown: '20% 治疗和护盾强度 × 50',
+  },
+  1022: {
+    value: 60 * 25,
+    breakdown: '60% 攻击速度 × 25',
+  },
+  1007: {
+    value: ((100 + 350) / 2) * 0.20 * 35,
+    breakdown: '平均基础AD (100+350)/2=225 × 20% × 35',
+  },
+  2024: {
+    value: (0 + 100 * 0.40 * 26.67) / 2,
+    breakdown: '平均暴击 (0%~100%) × 40% 转化技能急速 × 26.67',
+  },
+  1384: {
+    value: 1750,
+    breakdown: '直接获得 1750 金币',
+  },
+  1068: {
+    value: 60 * 26.67,
+    breakdown: '60 技能急速 × 26.67',
+  },
+  1098: {
+    value: (0 + 100 * 1.0 * 53.33) / 2,
+    breakdown: '平均技能急速 (0~100) × 100% 转化移动速度 × 53.33',
+  },
+  1030: {
+    value: ((0 + 1000) / 2) * 0.30 * 26.67,
+    breakdown: '平均法强 (0~1000)/2=500 × 30% 转化技能急速 × 26.67',
+  },
+  1325: {
+    value: -300,
+    breakdown: '代价：-30%生命值(≈660HP×2.67≈1762金) / 收益：15%真实伤害≈等效27%普通伤害加成(≈1418金) / 净值≈-344金，面对200+护甲时转正',
+  },
+  1328: {
+    value: 25 * 40 + 60 * 0.50 * 25,
+    breakdown: '25%暴击率×40=1000 + 最多10层×6%攻速(期望50%效率≈30%)×25=750',
+  },
+  1336: {
+    value: 25 * 40 + 500 + (50 * 0.50 / 2) * 35,
+    breakdown: '25%暴击率×40=1000 + 500金 + 平均暴击率50%×最高额外暴击50%÷2取期望×35=437',
+  },
 };
 
 const TIER_LABELS: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -117,7 +162,7 @@ function WinRateBar({ rate }: { rate: number }) {
   );
 }
 
-export default function AugmentModal({ augment, stats, onClose }: AugmentModalProps) {
+export default function AugmentModal({ augment, stats, onClose, debugMode = false }: AugmentModalProps) {
   const [triedLargeFallback, setTriedLargeFallback] = useState(false);
   const [triedSmallFallback, setTriedSmallFallback] = useState(false);
   const [allFailed, setAllFailed] = useState(false);
@@ -278,6 +323,11 @@ export default function AugmentModal({ augment, stats, onClose }: AugmentModalPr
               </h2>
               <p className="text-xs mt-1.5 font-mono" style={{ color: '#94A3B8' }}>
                 {augment.name}
+                {debugMode && (
+                  <span className="ml-2 px-1.5 py-0.5 rounded text-xs" style={{ background: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' }}>
+                    ID: {augment.id}
+                  </span>
+                )}
               </p>
             </div>
           </div>

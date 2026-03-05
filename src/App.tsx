@@ -4,6 +4,7 @@ import AugmentCard from './components/AugmentCard';
 import AugmentModal from './components/AugmentModal';
 import DataUploader from './components/DataUploader';
 import GoldEfficiencyPage from './components/GoldEfficiencyPage';
+import IntroPage from './components/IntroPage';
 import { AUGMENT_GOLD_VALUES } from './components/AugmentModal';
 
 const DEFAULT_DATA_URL = 'https://hextech.dtodo.cn/data/aram-mayhem-augments.zh_cn.json';
@@ -47,6 +48,8 @@ function parseStatsData(rawArray: [string, string, string, string, string][]): R
 }
 
 export default function App() {
+  const [showIntro, setShowIntro] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('augments');
   const [augments, setAugments] = useState<Augment[]>([]);
   const [statsMap, setStatsMap] = useState<Record<string, AugmentStats>>({});
@@ -55,6 +58,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [rarityFilter, setRarityFilter] = useState<RarityFilter>('all');
   const [showOnlyWithGoldValue, setShowOnlyWithGoldValue] = useState(false);
+  const [goldSortOrder, setGoldSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
   const [selectedAugment, setSelectedAugment] = useState<Augment | null>(null);
   const [dataSourceLabel, setDataSourceLabel] = useState<string>('远程');
 
@@ -104,7 +108,7 @@ export default function App() {
   }, []);
 
   const filteredAugments = useMemo(() => {
-    return augments.filter(augment => {
+    const filtered = augments.filter(augment => {
       const matchesRarity = rarityFilter === 'all' || augment.rarity === rarityFilter;
       const matchesSearch = !searchQuery ||
         augment.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -112,7 +116,15 @@ export default function App() {
       const matchesGoldFilter = !showOnlyWithGoldValue || (augment.id in AUGMENT_GOLD_VALUES);
       return matchesRarity && matchesSearch && matchesGoldFilter;
     });
-  }, [augments, rarityFilter, searchQuery, showOnlyWithGoldValue]);
+
+    if (goldSortOrder === 'none') return filtered;
+
+    return [...filtered].sort((augmentA, augmentB) => {
+      const goldA = AUGMENT_GOLD_VALUES[augmentA.id]?.value ?? -1;
+      const goldB = AUGMENT_GOLD_VALUES[augmentB.id]?.value ?? -1;
+      return goldSortOrder === 'asc' ? goldA - goldB : goldB - goldA;
+    });
+  }, [augments, rarityFilter, searchQuery, showOnlyWithGoldValue, goldSortOrder]);
 
   const countByRarity = useMemo(() => {
     return {
@@ -161,6 +173,12 @@ export default function App() {
     ? statsMap[String(selectedAugment.id)] ?? null
     : null;
 
+  if (showIntro) {
+    return <IntroPage onEnter={() => setShowIntro(false)} />;
+  }
+
+  const handleBackToIntro = () => setShowIntro(true);
+
   return (
     <div className="min-h-screen" style={{ background: '#F0F2F5' }}>
       <header
@@ -187,6 +205,42 @@ export default function App() {
                 </h1>
                 <p className="text-xs" style={{ color: '#94A3B8' }}>增益图鉴</p>
               </div>
+              <button
+                onClick={handleBackToIntro}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-150"
+                style={{
+                  color: '#0891B2',
+                  background: 'rgba(8,145,178,0.08)',
+                  border: '1px solid rgba(8,145,178,0.25)',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(8,145,178,0.15)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(8,145,178,0.08)';
+                }}
+              >
+                <i className="fas fa-circle-info text-xs" />
+                关于
+              </button>
+              <button
+                onClick={() => setDebugMode(prev => !prev)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-150"
+                style={{
+                  color: debugMode ? '#7C3AED' : '#94A3B8',
+                  background: debugMode ? 'rgba(124,58,237,0.08)' : 'transparent',
+                  border: `1px solid ${debugMode ? 'rgba(124,58,237,0.3)' : '#E2E8F0'}`,
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = debugMode ? 'rgba(124,58,237,0.15)' : 'rgba(0,0,0,0.04)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.background = debugMode ? 'rgba(124,58,237,0.08)' : 'transparent';
+                }}
+              >
+                <i className="fas fa-bug text-xs" />
+                {debugMode ? '调试中' : '调试'}
+              </button>
             </div>
 
             {activeTab === 'augments' && (
@@ -202,7 +256,7 @@ export default function App() {
                     </span>
                   </span>
                 )}
-                {!loading && augments.length > 0 && (
+                {debugMode && !loading && augments.length > 0 && (
                   <button
                     className="filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
                     style={{
@@ -217,7 +271,7 @@ export default function App() {
                     下载数据
                   </button>
                 )}
-                <DataUploader onUploadSuccess={handleUploadSuccess} />
+                {debugMode && <DataUploader onUploadSuccess={handleUploadSuccess} />}
               </div>
             )}
           </div>
@@ -330,6 +384,26 @@ export default function App() {
                     <i className="fas fa-coins text-xs" style={{ color: showOnlyWithGoldValue ? '#D97706' : '#CBD5E1' }} />
                     有金币价值
                   </button>
+
+                  <button
+                    className="filter-btn px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 whitespace-nowrap"
+                    style={{
+                      color: goldSortOrder !== 'none' ? '#0891B2' : '#94A3B8',
+                      background: goldSortOrder !== 'none' ? 'rgba(8,145,178,0.08)' : 'transparent',
+                      border: `1px solid ${goldSortOrder !== 'none' ? 'rgba(8,145,178,0.35)' : '#E2E8F0'}`,
+                    }}
+                    onClick={() => setGoldSortOrder(prev => {
+                      if (prev === 'none') return 'desc';
+                      if (prev === 'desc') return 'asc';
+                      return 'none';
+                    })}
+                  >
+                    <i
+                      className={`fas text-xs ${goldSortOrder === 'asc' ? 'fa-sort-amount-up' : goldSortOrder === 'desc' ? 'fa-sort-amount-down' : 'fa-sort'}`}
+                      style={{ color: goldSortOrder !== 'none' ? '#0891B2' : '#CBD5E1' }}
+                    />
+                    {goldSortOrder === 'asc' ? '金币升序' : goldSortOrder === 'desc' ? '金币降序' : '金币排序'}
+                  </button>
                 </div>
               </div>
             </div>
@@ -398,6 +472,7 @@ export default function App() {
         augment={selectedAugment}
         stats={selectedAugmentStats}
         onClose={handleModalClose}
+        debugMode={debugMode}
       />
     </div>
   );
