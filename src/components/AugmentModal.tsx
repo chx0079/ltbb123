@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Augment, getRarityKey, getLargeIconUrl, getLargeIconUrlFallback, getIconUrlFallback, renderDescription } from '../types';
+import { Augment, getRarityKey, getLargeIconUrl, getLargeIconUrlFallback, getIconUrlFallback, getIconUrlNoUnderscore, renderDescription } from '../types';
 import { AugmentStats } from '../App';
 
 interface AugmentModalProps {
@@ -163,14 +163,10 @@ function WinRateBar({ rate }: { rate: number }) {
 }
 
 export default function AugmentModal({ augment, stats, onClose, debugMode = false }: AugmentModalProps) {
-  const [triedLargeFallback, setTriedLargeFallback] = useState(false);
-  const [triedSmallFallback, setTriedSmallFallback] = useState(false);
-  const [allFailed, setAllFailed] = useState(false);
+  const [fallbackIndex, setFallbackIndex] = useState(0);
 
   useEffect(() => {
-    setTriedLargeFallback(false);
-    setTriedSmallFallback(false);
-    setAllFailed(false);
+    setFallbackIndex(0);
   }, [augment]);
 
   useEffect(() => {
@@ -190,29 +186,14 @@ export default function AugmentModal({ augment, stats, onClose, debugMode = fals
   const largePrimary = getLargeIconUrl(augment);
   const largeFallback = getLargeIconUrlFallback(augment);
   const smallFallback = getIconUrlFallback(augment);
+  const smallNoUnderscore = getIconUrlNoUnderscore(augment);
 
-  let currentIconSrc: string;
-  if (!triedLargeFallback) {
-    currentIconSrc = largePrimary;
-  } else if (!triedSmallFallback) {
-    currentIconSrc = largeFallback;
-  } else {
-    currentIconSrc = smallFallback;
-  }
+  const fallbackChain = Array.from(new Set([largePrimary, largeFallback, smallFallback, smallNoUnderscore]));
+  const allFailed = fallbackIndex >= fallbackChain.length;
+  const currentIconSrc = allFailed ? '' : fallbackChain[fallbackIndex];
 
   const handleIconError = () => {
-    if (!triedLargeFallback) {
-      if (largeFallback === largePrimary) {
-        setTriedLargeFallback(true);
-        setTriedSmallFallback(true);
-      } else {
-        setTriedLargeFallback(true);
-      }
-    } else if (!triedSmallFallback) {
-      setTriedSmallFallback(true);
-    } else {
-      setAllFailed(true);
-    }
+    setFallbackIndex(prev => prev + 1);
   };
 
   const tierInfo = stats ? TIER_LABELS[stats.tier] ?? null : null;

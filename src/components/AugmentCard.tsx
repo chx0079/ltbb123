@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Augment, getRarityKey, getLargeIconUrl, getLargeIconUrlFallback, getIconUrlFallback, renderDescription } from '../types';
+import { Augment, getRarityKey, getLargeIconUrl, getLargeIconUrlFallback, getIconUrlFallback, getIconUrlNoUnderscore, renderDescription } from '../types';
 
 interface AugmentGoldValue {
   value: number;
@@ -52,8 +52,7 @@ const RARITY_LIGHT = {
 };
 
 export default function AugmentCard({ augment, goldValue, onClick }: AugmentCardProps) {
-  const [triedLargeFallback, setTriedLargeFallback] = useState(false);
-  const [allFailed, setAllFailed] = useState(false);
+  const [fallbackIndex, setFallbackIndex] = useState(0);
 
   const rarityKey = getRarityKey(augment.rarity);
   const cfg = RARITY_LIGHT[rarityKey];
@@ -61,25 +60,15 @@ export default function AugmentCard({ augment, goldValue, onClick }: AugmentCard
 
   const largePrimary = getLargeIconUrl(augment);
   const largeFallback = getLargeIconUrlFallback(augment);
-  const smallFallback = getIconUrlFallback(augment);
+  const smallPrimary = getIconUrlFallback(augment);
+  const smallNoUnderscore = getIconUrlNoUnderscore(augment);
 
-  let currentSrc: string;
-  if (!triedLargeFallback) {
-    currentSrc = largePrimary;
-  } else {
-    currentSrc = largeFallback !== largePrimary ? largeFallback : smallFallback;
-  }
+  const fallbackChain = Array.from(new Set([largePrimary, largeFallback, smallPrimary, smallNoUnderscore]));
+  const allFailed = fallbackIndex >= fallbackChain.length;
+  const currentSrc = allFailed ? '' : fallbackChain[fallbackIndex];
 
   const handleImageError = () => {
-    if (!triedLargeFallback) {
-      if (largeFallback === largePrimary) {
-        setAllFailed(true);
-      } else {
-        setTriedLargeFallback(true);
-      }
-    } else {
-      setAllFailed(true);
-    }
+    setFallbackIndex(prev => prev + 1);
   };
 
   return (
@@ -120,8 +109,8 @@ export default function AugmentCard({ augment, goldValue, onClick }: AugmentCard
               onError={handleImageError}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <i className="fas fa-magic text-lg" style={{ color: cfg.color }} />
+            <div className="w-full h-full flex items-center justify-center" style={{ background: '#1E293B' }}>
+              <i className="fas fa-hat-wizard text-xl" style={{ color: cfg.color, opacity: 0.7 }} />
             </div>
           )}
         </div>

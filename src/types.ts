@@ -34,6 +34,11 @@ export function getIconUrlFallback(augment: Augment): string {
   return `https://cdn.dtodo.cn/hextech/augment-icons/${nameWithoutPrefix}_small.png`;
 }
 
+export function getIconUrlNoUnderscore(augment: Augment): string {
+  const nameWithoutPrefix = augment.name.toLowerCase().replace(/^aram_/, '').replace(/_/g, '');
+  return `https://cdn.dtodo.cn/hextech/augment-icons/${nameWithoutPrefix}_small.png`;
+}
+
 export function getLargeIconUrl(augment: Augment): string {
   const lowerName = augment.name.toLowerCase();
   return `https://cdn.dtodo.cn/hextech/augment-icons/${lowerName}_large.png`;
